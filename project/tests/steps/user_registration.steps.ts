@@ -1,5 +1,9 @@
-import { Given, When, Then } from "@cucumber/cucumber";
+import { Given, When, Then, context } from "@cucumber/cucumber";
 import { expect, Page, chromium, Browser } from "@playwright/test";
+const { v4: uuidv4 } = require('uuid');
+
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 let browser: Browser;
 let page: Page;
@@ -19,8 +23,10 @@ When("I enter a valid last name {string}", async function (lastName: string) {
   await page.fill('input[name="last_name"]', lastName);
 });
 
-When("I enter a unique email address {string}", async function (email:string) {
-  await page.fill('input[name="email"]', email);
+When("I enter a unique email address", async function () {
+  const uniqueEmail = `test_${uuidv4().slice(0, 6)}@example.com`;
+  console.log(uniqueEmail);
+  await page.fill('input[name="email"]', uniqueEmail);
 });
 
 When("I enter an already registered email {string}", async function (email: string) {
@@ -66,11 +72,54 @@ When("I enter OTP {string}", async function (otp: string) {
 Then("I should see a confirmation message {string}", async function (message: string) {
   const bodyText = await page.textContent("body");
   expect(bodyText).toContain(message);
-  await browser.close();
+  await page.close();
 });
 
 Then("I should see an error message {string}", async function (message: string) {
   const bodyText = await page.textContent("body");
   expect(bodyText).toContain(message);
-  await browser.close();
+  await page.close();
+});
+
+When("I navigate to login page", async function () {
+  await page.click('a:has-text("Login")'); // No id or name available for login button
+});
+
+When("I select Continue with Google", async function () {
+  await page.click('text=Continue with Google');
+  page.waitForLoadState("networkidle")
+});
+
+Then("I should be redirected to Google sign in page", async function () {
+await page.waitForSelector('input[type="email"]', { timeout: 5000 });
+const isVisible = await page.isVisible('input[type="email"]');
+expect(isVisible).toBe(true);
+});
+
+When("I enter my google email", async function () {
+  await page.fill('input[name="identifier"]', process.env.GOOGLE_TEST_EMAIL! ); 
+});
+
+When("I click on next", async function () {
+  await page.click('text=Next');
+  page.waitForLoadState("networkidle") 
+});
+
+Then("I should be redirected to Google password page", async function () {
+await page.waitForSelector('input[type="password"]', { timeout: 5000 });
+const isVisible = await page.isVisible('input[type="password"]');
+expect(isVisible).toBe(true);
+});
+
+When("I enter my google password", async function () {
+  await page.fill('input[id="Passwd"]', process.env.GOOGLE_TEST_PASS! );
+});
+
+Then("I should be redirected to Profile completion page", async function () {
+  const url = this.page.url();
+  expect(url).toContain('profile-completion');
+});
+
+When("I submit the form", async function () {
+  await page.click('text=Submit');
 });
