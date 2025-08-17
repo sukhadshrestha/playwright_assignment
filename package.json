@@ -1,0 +1,14 @@
+{
+  "name": "playwright-cucumber-registration",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "cucumber-js --require-module ts-node/register --require tests/steps/**/*.ts --publish-quiet"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.1.0",
+    "@playwright/test": "^1.45.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "uuid": "^9.0.1"
+  }
+}
